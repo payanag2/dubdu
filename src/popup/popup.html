@@ -1,0 +1,2354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>livdub</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        color-scheme: light dark;
+        --bg: #101012;
+        --panel: #18181b;
+        --line: #2a2a30;
+        --text: #f3f1ec;
+        --muted: #9c9890;
+        --faint: #6e6b64;
+        --accent: #ff4d2e;
+        --accent-text: #fffaf7;
+        --live: #2fd9b4;
+        --danger: #ff7a6c;
+        --focus: rgba(255, 77, 46, 0.26);
+        --pad: 10px;
+        --radius: 9px;
+        --control-h: 34px;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f8f9fa;
+          --panel: #ffffff;
+          --line: #dadce0;
+          --text: #202124;
+          --muted: #5f6368;
+          --faint: #80868b;
+          --accent: #e03f24;
+          --accent-text: #ffffff;
+          --live: #0a9f82;
+          --danger: #c5221f;
+          --focus: rgba(224, 63, 36, 0.16);
+        }
+      }
+
+      html,
+      body {
+        width: 320px;
+        max-width: 320px;
+        margin: 0;
+        overflow-x: hidden;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      input,
+      textarea,
+      #status {
+        user-select: text;
+        -webkit-user-select: text;
+      }
+
+      .shell {
+        background: var(--panel);
+      }
+
+      body.is-lang-open .shell {
+        padding-bottom: 38px;
+      }
+
+      body.is-upgrade-expanded footer,
+      body.is-upgrade-expanded .android-promo-wrap,
+      body.is-caption-settings-expanded footer,
+      body.is-caption-settings-expanded .android-promo-wrap,
+      body.is-audio-settings-expanded footer,
+      body.is-audio-settings-expanded .android-promo-wrap {
+        display: none;
+      }
+
+      body.is-caption-settings-expanded #activity,
+      body.is-audio-settings-expanded #activity {
+        display: none !important;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px var(--pad);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .brand-mark-crop {
+        position: relative;
+        display: block;
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+
+      .brand-mark-crop img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform: scale(1);
+        transform-origin: center;
+      }
+
+      .brand span {
+        font-size: 15px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+
+      .follow-link {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.28em;
+        margin: 0;
+        padding: 0;
+        color: var(--faint);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .follow-link svg {
+        flex: 0 0 auto;
+        width: 0.92em;
+        height: 0.92em;
+        translate: 0 0.02em;
+      }
+
+      .follow-link:hover {
+        color: var(--muted);
+      }
+
+      .main {
+        display: grid;
+        gap: 10px;
+        padding: 12px var(--pad);
+      }
+
+      @property --promo-angle {
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: 0deg;
+      }
+
+      .android-promo {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        padding: 1.5px;
+        border-radius: 12px;
+        isolation: isolate;
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow:
+          0 0 0 1px rgba(255, 77, 46, 0.12),
+          0 10px 28px rgba(255, 77, 46, 0.2);
+      }
+
+      .android-promo-wrap {
+        position: relative;
+      }
+
+      .android-promo-wrap.is-dismissible .android-promo-copy-text {
+        padding-right: 14px;
+      }
+
+      .android-promo-dismiss {
+        appearance: none;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(8, 8, 12, 0.55);
+        color: #c4bfb6;
+        cursor: pointer;
+      }
+
+      .android-promo-dismiss svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .android-promo-dismiss:hover {
+        background: rgba(8, 8, 12, 0.78);
+        color: #fffaf7;
+      }
+
+      .android-promo-dismiss:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .android-promo:hover .android-promo-card {
+        filter: brightness(1.07);
+      }
+
+      .android-promo:focus-visible {
+        outline: none;
+        box-shadow:
+          0 0 0 3px var(--focus),
+          0 10px 28px rgba(255, 77, 46, 0.2);
+      }
+
+      .android-promo-orbit {
+        position: absolute;
+        inset: -70%;
+        z-index: -1;
+        background: conic-gradient(
+          from var(--promo-angle),
+          #ff4d2e,
+          #ffb199,
+          #2fd9b4,
+          #8af6d8,
+          #ff4d2e
+        );
+        animation: promo-orbit 5.5s linear infinite;
+      }
+
+      .android-promo-card {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        padding: 9px 10px 9px 9px;
+        border-radius: 10.5px;
+        background:
+          radial-gradient(120% 130% at 100% -10%, rgba(255, 77, 46, 0.28), transparent 44%),
+          radial-gradient(90% 120% at -10% 110%, rgba(47, 217, 180, 0.2), transparent 50%),
+          #101016;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .android-promo-qr {
+        position: relative;
+        flex: 0 0 auto;
+        width: 92px;
+        height: 92px;
+        padding: 5px;
+        border-radius: 9px;
+        background: #fff;
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.14),
+          0 10px 20px rgba(0, 0, 0, 0.38);
+      }
+
+      .android-promo-qr svg,
+      #android-promo-qr {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .android-promo-qr-mark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+        width: 22px;
+        height: 22px;
+        padding: 2px;
+        overflow: hidden;
+        border-radius: 50%;
+        background: #fff;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 0 2px #fff;
+      }
+
+      .android-promo-qr-mark img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform: scale(1.08);
+        transform-origin: center;
+      }
+
+      .android-promo-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        min-width: 0;
+        padding: 1px 0 0;
+      }
+
+      .android-promo-copy-text {
+        display: grid;
+        gap: 3px;
+      }
+
+      .android-promo-kicker {
+        color: #7af0d4;
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .android-promo-copy strong {
+        color: #fffaf7;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.3;
+      }
+
+      .android-promo-cta {
+        display: inline-flex;
+        margin: 0 0 -10px -10px;
+        padding: 0;
+        line-height: 0;
+      }
+
+      .android-promo-cta img {
+        display: block;
+        height: 52px;
+        width: auto;
+        max-width: calc(100% + 16px);
+      }
+
+      @keyframes promo-orbit {
+        to {
+          --promo-angle: 360deg;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .android-promo-orbit {
+          animation: none;
+        }
+      }
+
+      .control-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .lang-combo {
+        position: relative;
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+        z-index: 5;
+      }
+
+      .lang-combo-field {
+        position: relative;
+        height: var(--control-h);
+        min-height: var(--control-h);
+        max-height: var(--control-h);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--bg);
+      }
+
+      .lang-combo-field:hover {
+        border-color: color-mix(in srgb, var(--text) 22%, var(--line));
+      }
+
+      .lang-combo.is-open .lang-combo-field,
+      .lang-combo-field:focus-within {
+        border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .lang-combo-field input {
+        display: block;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0 28px 0 8px;
+        border: 0;
+        border-radius: inherit;
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+        outline: none;
+      }
+
+      .lang-combo-field input::placeholder {
+        color: var(--faint);
+      }
+
+      .lang-combo-toggle {
+        appearance: none;
+        position: absolute;
+        top: 50%;
+        right: 0;
+        width: 32px;
+        height: 100%;
+        transform: translateY(-50%);
+        padding: 0;
+        border: 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .lang-combo-toggle::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 10px;
+        height: 6px;
+        transform: translate(-50%, -50%);
+        background: currentColor;
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1.5 1.75 6 6.25 10.5 1.75' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1.5 1.75 6 6.25 10.5 1.75' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+      }
+
+      .lang-combo-toggle:hover {
+        color: var(--text);
+      }
+
+      .lang-combo.is-disabled {
+        opacity: 0.62;
+      }
+
+      .lang-combo.is-disabled .lang-combo-field:hover {
+        border-color: var(--line);
+      }
+
+      .lang-combo-toggle:disabled,
+      .lang-combo-field input:disabled {
+        cursor: default;
+      }
+
+      .lang-combo.is-open .lang-combo-toggle::after {
+        transform: translate(-50%, -50%) rotate(180deg);
+      }
+
+      .lang-list {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 6;
+        max-height: 126px;
+        margin: 0;
+        padding: 4px;
+        overflow: auto;
+        scrollbar-width: none;
+        list-style: none;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .lang-list::-webkit-scrollbar {
+        display: none;
+      }
+
+      .lang-list[hidden] {
+        display: none !important;
+      }
+
+      .lang-option {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 12px;
+        align-items: baseline;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 8px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        line-height: 15px;
+        text-align: left;
+      }
+
+      .lang-option::after {
+        content: "";
+        color: var(--live);
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .lang-option em {
+        color: var(--faint);
+        font-size: 10.5px;
+        font-style: normal;
+        font-weight: 500;
+      }
+
+      .lang-option:hover,
+      .lang-option.is-active {
+        background: color-mix(in srgb, var(--text) 8%, transparent);
+      }
+
+      .lang-option.is-selected {
+        background: color-mix(in srgb, var(--live) 12%, transparent);
+      }
+
+      .lang-option.is-selected::after {
+        content: "✓";
+      }
+
+      .lang-empty {
+        padding: 10px 8px;
+        color: var(--faint);
+        font-size: 12px;
+      }
+
+      body.is-lang-open {
+        overflow: visible;
+      }
+
+      .actions {
+        display: grid;
+        justify-items: stretch;
+        gap: 8px;
+      }
+
+      #dub-toggle {
+        appearance: none;
+        -webkit-appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        flex: 0 0 auto;
+        width: auto;
+        height: var(--control-h);
+        min-height: var(--control-h);
+        max-height: var(--control-h);
+        margin: 0;
+        padding: 0 14px;
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        background: var(--live);
+        background-clip: padding-box;
+        color: #041512;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      #dub-toggle:hover:not(:disabled) {
+        filter: brightness(1.06);
+      }
+
+      #dub-toggle:disabled {
+        cursor: default;
+        opacity: 0.4;
+        filter: none;
+      }
+
+      #dub-toggle .btn-dot {
+        display: none;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.85;
+      }
+
+      #dub-toggle.is-armed {
+        background: color-mix(in srgb, var(--panel) 82%, var(--live));
+        border-color: var(--line);
+        background-clip: padding-box;
+        color: var(--text);
+      }
+
+      #dub-toggle.is-armed .btn-dot {
+        display: block;
+        background: var(--muted);
+        opacity: 1;
+        animation: arm-pulse 1.4s ease-in-out infinite;
+      }
+
+      #dub-toggle.is-stop {
+        background: var(--accent);
+        border-color: transparent;
+        background-clip: padding-box;
+        color: var(--accent-text);
+      }
+
+      #dub-toggle.is-stop .btn-dot {
+        display: block;
+        background: var(--accent-text);
+        opacity: 0.9;
+        animation: none;
+      }
+
+      #dub-toggle.is-armed:hover:not(:disabled),
+      #dub-toggle.is-stop:hover:not(:disabled) {
+        filter: brightness(1.06);
+      }
+
+      #dub-toggle .btn-timer {
+        display: none;
+        margin-left: 2px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        opacity: 0.82;
+      }
+
+      #dub-toggle.is-stop .btn-timer {
+        display: inline;
+      }
+
+      .record-btn {
+        appearance: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 34px;
+        margin: 0;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 550;
+        text-align: left;
+      }
+
+      .record-btn:hover:not(:disabled) {
+        border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+        color: var(--text);
+      }
+
+      .record-btn:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .record-dot {
+        flex: 0 0 auto;
+        width: 9px;
+        height: 9px;
+        border: 1.5px solid currentColor;
+        border-radius: 50%;
+      }
+
+      .record-label {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .record-timer {
+        flex: 0 0 auto;
+        color: var(--faint);
+        font-variant-numeric: tabular-nums;
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+
+      .record-btn.is-recording {
+        border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+        background: color-mix(in srgb, var(--accent) 9%, var(--bg));
+        color: var(--text);
+      }
+
+      .record-btn.is-recording .record-dot {
+        border-color: var(--accent);
+        background: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+        animation: record-pulse 1.25s ease-in-out infinite;
+      }
+
+      .record-btn.is-recording.is-paused .record-dot {
+        opacity: 0.55;
+        animation: none;
+      }
+
+      @keyframes record-pulse {
+        0%,
+        100% {
+          opacity: 0.55;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes arm-pulse {
+        0%,
+        100% {
+          opacity: 0.35;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .sites-btn {
+        appearance: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        text-align: left;
+      }
+
+      .sites-btn .label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .sites-btn .label svg {
+        flex: 0 0 auto;
+        width: 12px;
+        height: 12px;
+        opacity: 0.85;
+      }
+
+      .sites-btn .help-icon {
+        display: inline-grid;
+        flex: 0 0 auto;
+        width: 14px;
+        height: 14px;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        color: var(--faint);
+        font-size: 9px;
+        font-weight: 650;
+        line-height: 1;
+      }
+
+      .sites-btn:hover:not(:disabled),
+      .sites-btn:hover:not(:disabled) .help-icon,
+      .activity-btn:hover .label strong,
+      .activity-btn:hover .label svg,
+      .activity-btn:hover .chevron {
+        color: var(--text);
+      }
+
+      .sites-btn:hover:not(:disabled) .label svg {
+        opacity: 1;
+      }
+
+      .sites-btn:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
+
+      .status {
+        display: none;
+        margin: -2px 1px 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .status.is-visible {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .status.is-error {
+        color: var(--danger);
+      }
+
+      .status.is-error #focus-dub-tab {
+        display: none;
+      }
+
+      .quota-card {
+        display: grid;
+        gap: 8px;
+        margin: 2px calc(-1 * var(--pad)) 0;
+        padding: 10px var(--pad) 0;
+        border: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+        background: transparent;
+      }
+
+      .quota-card.is-plus {
+        gap: 0;
+      }
+
+      .quota-card.is-plus .quota-title,
+      .quota-card.is-plus .quota-track,
+      .quota-card.is-plus .quota-meta {
+        display: none;
+      }
+
+      .quota-card.is-plus .upgrade-actions.is-connected {
+        align-items: center;
+        gap: 10px;
+      }
+
+      .quota-card.is-plus .upgrade-btn.is-manage {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+
+      .quota-card.is-plus .upgrade-btn.is-manage:hover {
+        border: 0;
+        background: transparent;
+      }
+
+      .quota-card.is-plus .upgrade-btn.is-manage:hover .upgrade-copy strong,
+      .quota-card.is-plus .upgrade-btn.is-manage:hover .upgrade-manage-icon {
+        color: var(--text);
+      }
+
+      .upgrade-manage-icon {
+        display: none;
+        flex: 0 0 auto;
+        width: 12px;
+        height: 12px;
+        color: var(--faint);
+      }
+
+      .quota-card.is-plus .upgrade-manage-icon {
+        display: block;
+      }
+
+      .quota-card.is-plus .upgrade-copy {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .quota-card.is-plus .upgrade-copy strong {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .quota-card.is-plus .upgrade-copy span {
+        color: var(--faint);
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+
+      .quota-card.is-plus .account-connected {
+        min-height: 0;
+      }
+
+      .quota-card.is-plus .account-connected button {
+        height: auto;
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--faint);
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .quota-card.is-plus .account-connected button:hover:not(:disabled) {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+      }
+
+      .quota-card header {
+        padding: 0;
+        border: 0;
+      }
+
+      .quota-title,
+      .quota-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .quota-title strong {
+        font-size: 12px;
+      }
+
+      .quota-meta {
+        color: var(--faint);
+        font-size: 10.5px;
+      }
+
+      .quota-track {
+        height: 4px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: color-mix(in srgb, var(--text) 10%, transparent);
+      }
+
+      .quota-track span {
+        display: block;
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--live);
+      }
+
+      .quota-card.is-warning .quota-track span {
+        background: #e6a23c;
+      }
+
+      .quota-card.is-grace .quota-track span {
+        background: var(--accent);
+      }
+
+      .plus-benefits-list {
+        display: grid;
+        gap: 3px;
+        margin: 0;
+        padding: 0 0 0 15px;
+      }
+
+      .plus-benefits-list li {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .upgrade-btn {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 6px 10px;
+        border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .upgrade-btn:has(.upgrade-price:not([hidden])) {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .upgrade-copy {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .upgrade-copy strong {
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .upgrade-copy span {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.3;
+      }
+
+      .upgrade-price {
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .upgrade-btn:hover {
+        border-color: color-mix(in srgb, var(--accent) 78%, var(--line));
+        background: color-mix(in srgb, var(--accent) 15%, transparent);
+      }
+
+      body.is-upgrade-expanded .upgrade-btn:not(.is-manage) {
+        border-color: var(--line);
+        background: color-mix(in srgb, var(--text) 3%, transparent);
+      }
+
+      body.is-upgrade-expanded .upgrade-btn:not(.is-manage):hover {
+        border-color: color-mix(in srgb, var(--text) 26%, var(--line));
+        background: color-mix(in srgb, var(--text) 6%, transparent);
+      }
+
+      body.is-upgrade-expanded .upgrade-price {
+        color: var(--text);
+      }
+
+      .upgrade-actions {
+        display: grid;
+        gap: 7px;
+      }
+
+      .upgrade-actions.is-connected {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .upgrade-btn.is-manage {
+        border-color: var(--line);
+        background: color-mix(in srgb, var(--text) 3%, transparent);
+      }
+
+      .upgrade-btn.is-manage:hover {
+        border-color: color-mix(in srgb, var(--text) 26%, var(--line));
+        background: color-mix(in srgb, var(--text) 6%, transparent);
+      }
+
+      .account-connected {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+      }
+
+      .account-connected button {
+        height: 100%;
+        min-height: 44px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--text) 2%, transparent);
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .account-connected button:hover:not(:disabled) {
+        border-color: color-mix(in srgb, var(--text) 26%, var(--line));
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        color: var(--text);
+      }
+
+      .account-connected button:disabled {
+        cursor: wait;
+        opacity: .55;
+      }
+
+      .plus-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 16px;
+        padding: 0 5px;
+        border-radius: 99px;
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        color: var(--accent);
+        font-size: 8.5px;
+        font-style: normal;
+        font-weight: 750;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+
+      .auth-panel {
+        display: grid;
+        gap: 7px;
+        padding-top: 2px;
+      }
+
+      .checkout-intro {
+        display: grid;
+        gap: 1px;
+        padding: 1px 1px 0;
+      }
+
+      .checkout-intro span {
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.35;
+      }
+
+      .account-login {
+        margin: 1px 0 0;
+        padding: 0;
+        color: var(--faint);
+        font-size: 10.5px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .account-login[hidden] {
+        display: none !important;
+      }
+
+      .account-login button {
+        appearance: none;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .account-login button:hover:not(:disabled) {
+        color: var(--muted);
+      }
+
+      .account-login button:disabled {
+        cursor: wait;
+        opacity: .55;
+      }
+
+      .plus-plan-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .plus-plan-options:has(#plus-plan-monthly[hidden]) {
+        grid-template-columns: 1fr;
+      }
+
+      .plus-plan-options[hidden] {
+        display: none !important;
+      }
+
+      .plus-plan-option {
+        appearance: none;
+        display: grid;
+        gap: 1px;
+        min-height: 40px;
+        padding: 7px 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--text) 4%, transparent);
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .plus-plan-option strong {
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+
+      .plus-plan-option span {
+        color: var(--faint);
+        font-size: 9.5px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .plus-plan-option:hover {
+        border-color: color-mix(in srgb, var(--text) 28%, var(--line));
+      }
+
+      .plus-plan-option.is-selected {
+        border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+      }
+
+      .plus-plan-option.is-primary {
+        border-color: color-mix(in srgb, var(--accent) 75%, var(--line));
+        background: color-mix(in srgb, var(--accent) 22%, transparent);
+      }
+
+      .plus-plan-option.is-primary span {
+        color: color-mix(in srgb, var(--accent) 70%, var(--text));
+        font-weight: 650;
+      }
+
+      .plus-plan-option:disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
+
+      .plus-plan-option:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .auth-panel #plus-checkout {
+        appearance: none;
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .auth-panel #plus-checkout[hidden] {
+        display: none !important;
+      }
+
+      .auth-panel #plus-checkout:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      .auth-panel #plus-checkout:hover {
+        background: color-mix(in srgb, var(--accent) 22%, transparent);
+      }
+
+      .auth-panel #google-signin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid #747775;
+        border-radius: 7px;
+        background: #fff;
+        color: #1f1f1f;
+        cursor: pointer;
+        font: 500 14px/20px Arial, sans-serif;
+      }
+
+      .auth-panel #google-signin:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      .auth-panel #google-signin:hover {
+        background: #f8fafd;
+        box-shadow: 0 1px 2px rgb(60 64 67 / 30%);
+      }
+
+      .auth-panel #google-signin:focus-visible {
+        outline: 3px solid rgb(66 133 244 / 45%);
+        outline-offset: 2px;
+      }
+
+      .auth-panel #google-signin svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+      }
+
+      .auth-panel input {
+        width: 100%;
+        height: 31px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .payment-choices {
+        display: grid;
+        gap: 6px;
+      }
+
+      #status {
+        margin: 0;
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #focus-dub-tab {
+        appearance: none;
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--accent);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      #focus-dub-tab[hidden] {
+        display: none !important;
+      }
+
+      #focus-dub-tab:hover {
+        color: var(--text);
+      }
+
+      #focus-dub-tab.is-current,
+      #focus-dub-tab:disabled {
+        color: var(--muted);
+        font-weight: 400;
+        cursor: default;
+        text-decoration: none;
+        pointer-events: none;
+      }
+
+      #focus-dub-tab.is-current:hover,
+      #focus-dub-tab:disabled:hover {
+        color: var(--muted);
+      }
+
+      .setup {
+        display: grid;
+        gap: 8px;
+      }
+
+      .key-setup-intro,
+      .key-privacy-note {
+        display: none;
+      }
+
+      body.is-key-setup .main,
+      body.is-key-setup .follow-link,
+      body.is-key-setup .setup-summary {
+        display: none;
+      }
+
+      body.is-key-setup footer {
+        min-height: 300px;
+        padding: 22px 16px 18px;
+        border-top: 0;
+      }
+
+      body.is-key-setup .setup-panel {
+        gap: 12px;
+      }
+
+      body.is-key-setup .key-setup-intro {
+        display: grid;
+        gap: 6px;
+      }
+
+      .key-setup-intro h1 {
+        margin: 0;
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 680;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+      }
+
+      .key-setup-intro p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+
+      .key-privacy-note {
+        margin: 0;
+        color: var(--faint);
+        font-size: 10.5px;
+        line-height: 1.45;
+      }
+
+      body.is-key-setup .key-privacy-note {
+        display: block;
+      }
+
+      .output-stack {
+        display: grid;
+        gap: 8px;
+      }
+
+      .output-control {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--bg);
+      }
+
+      .output-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 42px;
+        padding: 7px 10px;
+      }
+
+      .output-controls {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .caption-gear {
+        appearance: none;
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--faint);
+        cursor: pointer;
+      }
+
+      .caption-gear svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .caption-gear:hover {
+        color: var(--text);
+        border-color: var(--line);
+        background: color-mix(in srgb, var(--text) 6%, transparent);
+      }
+
+      .caption-gear.is-open {
+        color: var(--text);
+        border-color: color-mix(in srgb, var(--live) 45%, var(--line));
+        background: color-mix(in srgb, var(--live) 16%, transparent);
+      }
+
+      .caption-gear[hidden] {
+        display: none !important;
+      }
+
+      .caption-gear:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .duck-slider-row {
+        display: grid;
+        gap: 6px;
+        padding: 2px 0 4px;
+      }
+
+      .duck-slider-labels {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--faint);
+        font-size: 10px;
+        font-weight: 550;
+      }
+
+      .duck-slider {
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        margin: 0;
+        border-radius: 99px;
+        background: color-mix(in srgb, var(--text) 12%, transparent);
+        outline: none;
+        cursor: pointer;
+      }
+
+      .duck-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--live);
+        cursor: pointer;
+      }
+
+      .duck-slider::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--live);
+        cursor: pointer;
+      }
+
+      .duck-slider:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--live) 55%, transparent);
+        outline-offset: 3px;
+      }
+
+      .duck-slider:disabled {
+        cursor: default;
+        opacity: 0.55;
+      }
+
+      .output-title {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .output-title strong {
+        color: var(--text);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .output-title span {
+        color: var(--faint);
+        font-size: 10.5px;
+      }
+
+      .switch {
+        appearance: none;
+        position: relative;
+        flex: 0 0 auto;
+        width: 34px;
+        height: 20px;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--text) 8%, transparent);
+        cursor: pointer;
+      }
+
+      .switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: transform 140ms ease, background 140ms ease;
+      }
+
+      .switch[aria-checked="true"] {
+        border-color: color-mix(in srgb, var(--live) 75%, var(--line));
+        background: color-mix(in srgb, var(--live) 28%, transparent);
+      }
+
+      .switch[aria-checked="true"]::after {
+        transform: translateX(14px);
+        background: var(--live);
+      }
+
+      .switch:disabled {
+        cursor: default;
+        opacity: 0.48;
+      }
+
+      .switch:focus-visible,
+      .caption-option:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .caption-settings {
+        display: grid;
+        gap: 7px;
+        padding: 8px 9px 9px;
+        border-top: 1px solid var(--line);
+      }
+
+      .caption-settings[hidden] {
+        display: none !important;
+      }
+
+      .caption-setting-row {
+        display: grid;
+        grid-template-columns: 60px minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+      }
+
+      .caption-setting-row[hidden] {
+        display: none !important;
+      }
+
+      .caption-setting-row > span {
+        color: var(--muted);
+        font-size: 10.5px;
+        font-weight: 500;
+      }
+
+      .caption-options {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 3px;
+        padding: 2px;
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--text) 6%, transparent);
+      }
+
+      .caption-option {
+        appearance: none;
+        min-width: 0;
+        height: 24px;
+        padding: 0 6px;
+        border: 0;
+        border-radius: 5px;
+        background: transparent;
+        color: var(--faint);
+        cursor: pointer;
+        font: inherit;
+        font-size: 10.5px;
+        font-weight: 550;
+      }
+
+      .caption-option:hover {
+        color: var(--text);
+      }
+
+      .caption-option:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .caption-option:disabled:hover {
+        color: var(--faint);
+      }
+
+      .caption-option.is-selected:disabled:hover {
+        color: var(--text);
+      }
+
+      .caption-option.is-selected {
+        background: var(--panel);
+        color: var(--text);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .switch::after,
+        .record-btn.is-recording .record-dot {
+          transition: none;
+          animation: none;
+        }
+      }
+
+      .activity-btn {
+        appearance: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .activity-btn .label {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .activity-btn .label svg {
+        flex: 0 0 auto;
+        width: 12px;
+        height: 12px;
+        color: var(--faint);
+      }
+
+      .activity-btn .label strong {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .activity-btn .label em {
+        color: var(--faint);
+        font-size: 11.5px;
+        font-style: normal;
+        font-weight: 500;
+      }
+
+      .activity-btn .chevron {
+        flex: 0 0 auto;
+        color: var(--faint);
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      .setup-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--faint);
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        text-align: left;
+      }
+
+      .setup-summary:hover {
+        color: var(--muted);
+      }
+
+      .setup-summary strong {
+        color: inherit;
+        font-weight: 500;
+      }
+
+      #key-summary {
+        flex: 0 1 auto;
+        min-width: 0;
+      }
+
+      .setup-panel {
+        display: grid;
+        gap: 8px;
+      }
+
+      .setup-panel[hidden] {
+        display: none !important;
+      }
+
+      .key-guide {
+        display: grid;
+        gap: 7px;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--accent) 5%, transparent);
+      }
+
+      .key-guide p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.45;
+      }
+
+      .key-guide strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      #get-gemini-key {
+        justify-self: start;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      #get-gemini-key:hover {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      input[type="password"] {
+        width: 100%;
+        height: 36px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        outline: none;
+      }
+
+      input[type="password"]:focus {
+        border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .key-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .key-actions button {
+        height: 30px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .key-actions button:hover {
+        border-color: color-mix(in srgb, var(--text) 30%, var(--line));
+        background: color-mix(in srgb, var(--text) 4%, transparent);
+      }
+
+      body.is-key-setup #save-key {
+        flex: 1 1 auto;
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-text);
+        font-weight: 650;
+      }
+
+      body.is-key-setup #save-key:hover {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 92%, white);
+      }
+
+      footer {
+        display: grid;
+        gap: 6px;
+        padding: 10px var(--pad) 12px;
+        border-top: 1px solid var(--line);
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      #quota-card, .plus-badge {
+        display: none !important;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/popup.html-CIhU3cTi.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="modulepreload" crossorigin href="/assets/pricing-DNoD_86D.js">
+    <link rel="modulepreload" crossorigin href="/assets/sessions-Bq2-99JM.js">
+    <link rel="modulepreload" crossorigin href="/assets/entitlementManager-CcbFBPad.js">
+    <link rel="modulepreload" crossorigin href="/assets/languages-CWpi6jxF.js">
+    <link rel="modulepreload" crossorigin href="/assets/brand-DBX_Vu7S.js">
+    <link rel="modulepreload" crossorigin href="/assets/browserAuth-Tke6jrao.js">
+  </head>
+  <body class="is-key-setup">
+    <main class="shell">
+      <header>
+        <div class="brand">
+          <span class="brand-mark-crop">
+            <img id="brand-mark" width="24" height="24" alt="" />
+          </span>
+          <span>livdub</span>
+        </div>
+        <a
+          class="follow-link"
+          href="https://x.com/intent/follow?screen_name=PawnToPromotion"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>Follow on</span>
+          <svg viewBox="0 0 24 24" aria-label="X">
+            <title>X</title>
+            <path
+              fill="currentColor"
+              d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+            />
+          </svg>
+          <span>for Updates</span>
+        </a>
+      </header>
+
+      <section class="main">
+        <div class="actions">
+          <div class="control-row">
+            <div class="lang-combo" id="lang-combo">
+              <div class="lang-combo-field">
+                <input
+                  id="language-input"
+                  type="text"
+                  role="combobox"
+                  aria-label="Language"
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-controls="language-list"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Search language"
+                />
+                <button
+                  class="lang-combo-toggle"
+                  id="language-toggle"
+                  type="button"
+                  aria-label="Toggle language list"
+                  aria-expanded="false"
+                  aria-controls="language-list"
+                ></button>
+              </div>
+              <ul class="lang-list" id="language-list" role="listbox" hidden></ul>
+            </div>
+            <button id="dub-toggle" type="button">
+              <span class="btn-dot" aria-hidden="true"></span>
+              <span id="dub-toggle-label">Start</span>
+              <span class="btn-timer" id="session-timer-value" aria-hidden="true">0:00</span>
+            </button>
+          </div>
+          <button
+            class="sites-btn"
+            id="all-sites"
+            type="button"
+            title="Allow Livdub to capture audio when you start dubbing on any website"
+            hidden
+          >
+            <span class="label">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  fill-rule="evenodd"
+                  d="M8 1.25 2.75 3.4v4.15c0 3.25 2.2 6.05 5.25 6.8 3.05-.75 5.25-3.55 5.25-6.8V3.4L8 1.25Zm0 1.2 4.1 1.55v3.55c0 2.45-1.6 4.55-4.1 5.15-2.5-.6-4.1-2.7-4.1-5.15V4L8 2.45Zm3.05 3.2-3.4 3.4-1.7-1.7.85-.85.85.85 2.55-2.55.85.85Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span>Enable for all websites</span>
+            </span>
+            <span class="help-icon" aria-hidden="true">?</span>
+          </button>
+        </div>
+
+        <div class="status" id="status-row" hidden>
+          <p id="status"></p>
+          <button id="focus-dub-tab" type="button" hidden>Show tab</button>
+        </div>
+
+        <div class="output-stack">
+          <section class="output-control" id="output-audio" aria-label="Dubbed audio">
+            <div class="output-row">
+              <div class="output-title">
+                <strong id="audio-label">Dubbed audio</strong>
+                <span>Hear the translated voice</span>
+              </div>
+              <div class="output-controls">
+                <button
+                  class="caption-gear"
+                  id="audio-settings-toggle"
+                  type="button"
+                  hidden
+                  aria-expanded="false"
+                  aria-controls="audio-settings"
+                  title="Original volume"
+                  aria-label="Original volume while dubbing"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M2.5 4h3.5M9 4h4.5M2.5 8h7M12.5 8h1M2.5 12h1.5M7 12h6.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.5"
+                    />
+                    <circle cx="7.5" cy="4" r="1.55" fill="currentColor" />
+                    <circle cx="11" cy="8" r="1.55" fill="currentColor" />
+                    <circle cx="5.5" cy="12" r="1.55" fill="currentColor" />
+                  </svg>
+                </button>
+                <button
+                  class="switch"
+                  id="audio-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked="true"
+                  aria-labelledby="audio-label"
+                ></button>
+              </div>
+            </div>
+            <div class="caption-settings" id="audio-settings" hidden>
+              <div class="duck-slider-row">
+                <div class="duck-slider-labels">
+                  <span>Mute</span>
+                  <span>Louder</span>
+                </div>
+                <input
+                  class="duck-slider"
+                  id="original-duck-slider"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="50"
+                  aria-label="Original audio volume while dubbing"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section class="output-control" id="output-captions" aria-label="Subtitles">
+            <div class="output-row">
+              <div class="output-title">
+                <strong id="caption-label">Subtitles <em class="plus-badge">Plus</em></strong>
+                <span id="caption-subtitle">See translation on the page</span>
+              </div>
+              <div class="output-controls">
+                <button
+                  class="caption-gear"
+                  id="caption-settings-toggle"
+                  type="button"
+                  hidden
+                  aria-expanded="false"
+                  aria-controls="caption-settings"
+                  title="Subtitle settings"
+                  aria-label="Subtitle settings"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M2.5 4h3.5M9 4h4.5M2.5 8h7M12.5 8h1M2.5 12h1.5M7 12h6.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.5"
+                    />
+                    <circle cx="7.5" cy="4" r="1.55" fill="currentColor" />
+                    <circle cx="11" cy="8" r="1.55" fill="currentColor" />
+                    <circle cx="5.5" cy="12" r="1.55" fill="currentColor" />
+                  </svg>
+                </button>
+                <button
+                  class="switch"
+                  id="caption-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked="false"
+                  aria-labelledby="caption-label"
+                ></button>
+              </div>
+            </div>
+            <div class="caption-settings" id="caption-settings" hidden>
+              <div class="caption-setting-row">
+                <span>Display</span>
+                <span class="caption-options" role="group" aria-label="Subtitle display mode">
+                  <button class="caption-option" type="button" data-caption-mode="translated">Translation</button>
+                  <button class="caption-option" type="button" data-caption-mode="dual" title="Show original speech above the translation">Dual</button>
+                </span>
+              </div>
+              <div class="caption-setting-row">
+                <span>Placement</span>
+                <span class="caption-options" role="group" aria-label="Subtitle placement">
+                  <button class="caption-option" type="button" data-caption-placement="screen">Screen</button>
+                  <button class="caption-option" type="button" data-caption-placement="video">On video</button>
+                  <button class="caption-option" type="button" data-caption-placement="custom" title="Drag subtitles on the dubbed tab">Custom</button>
+                </span>
+              </div>
+              <div class="caption-setting-row" id="caption-position-row">
+                <span>Position</span>
+                <span class="caption-options" role="group" aria-label="Subtitle position">
+                  <button class="caption-option" type="button" data-caption-position="bottom">Bottom</button>
+                  <button class="caption-option" type="button" data-caption-position="top">Top</button>
+                </span>
+              </div>
+              <div class="caption-setting-row">
+                <span>Size</span>
+                <span class="caption-options" role="group" aria-label="Subtitle size">
+                  <button class="caption-option" type="button" data-caption-size="small">Small</button>
+                  <button class="caption-option" type="button" data-caption-size="medium">Medium</button>
+                  <button class="caption-option" type="button" data-caption-size="large">Large</button>
+                </span>
+              </div>
+              <div class="caption-setting-row">
+                <span>Style</span>
+                <span class="caption-options" role="group" aria-label="Subtitle style">
+                  <button class="caption-option" type="button" data-caption-style="dark">Dark</button>
+                  <button class="caption-option" type="button" data-caption-style="light">Light</button>
+                  <button class="caption-option" type="button" data-caption-style="outline">Outline</button>
+                </span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <button
+          class="record-btn"
+          id="record-toggle"
+          type="button"
+          aria-pressed="false"
+          title="Save this session recording"
+        >
+          <span class="record-dot" aria-hidden="true"></span>
+          <span class="record-label" id="record-toggle-label">Record audio &amp; subtitles <em class="plus-badge">Plus</em></span>
+          <span class="record-timer" id="record-timer" hidden>0:00</span>
+        </button>
+
+        <div class="android-promo-wrap" id="android-promo-wrap" hidden>
+          <a
+            class="android-promo"
+            id="android-promo-cta"
+            href="https://play.google.com/store/apps/details?id=com.livdub.android"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Get Livdub on Google Play"
+          >
+            <div class="android-promo-orbit" aria-hidden="true"></div>
+            <div class="android-promo-card">
+              <div class="android-promo-qr" aria-hidden="true">
+                <div id="android-promo-qr"></div>
+                <span class="android-promo-qr-mark">
+                  <img id="android-promo-qr-mark" width="18" height="18" alt="" />
+                </span>
+              </div>
+              <div class="android-promo-copy">
+                <div class="android-promo-copy-text">
+                  <span class="android-promo-kicker">Now available on Android!</span>
+                  <strong>Dub the room, or any app<br />not just this tab</strong>
+                </div>
+                <span class="android-promo-cta">
+                  <img
+                    id="android-promo-badge"
+                    width="646"
+                    height="250"
+                    alt=""
+                  />
+                </span>
+              </div>
+            </div>
+          </a>
+          <button
+            class="android-promo-dismiss"
+            id="android-promo-dismiss"
+            type="button"
+            hidden
+            aria-label="Dismiss Android app promo"
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path
+                d="M2.2 2.2 9.8 9.8M9.8 2.2 2.2 9.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-width="1.6"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <section class="quota-card" id="quota-card" aria-live="polite" hidden>
+          <div class="quota-title">
+            <strong id="quota-tier">Free</strong>
+            <span id="quota-remaining"></span>
+          </div>
+          <div class="quota-track" aria-hidden="true"><span id="quota-fill"></span></div>
+          <div class="quota-meta">
+            <span id="quota-note"></span>
+            <span id="quota-reset"></span>
+          </div>
+          <div class="upgrade-actions" id="upgrade-actions">
+            <button
+              class="upgrade-btn"
+              id="upgrade"
+              type="button"
+              aria-expanded="false"
+              aria-controls="auth-panel"
+            >
+              <span class="upgrade-copy">
+                <svg
+                  class="upgrade-manage-icon"
+                  viewBox="0 0 16 16"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="2"
+                    y="4"
+                    width="12"
+                    height="8"
+                    rx="1.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    d="M2 7h12"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                </svg>
+                <strong id="upgrade-title">Get Plus</strong>
+                <span id="upgrade-subtitle">Unlimited dubbing and Plus features</span>
+              </span>
+              <span class="upgrade-price" id="upgrade-price" hidden>$5/mo · $50/yr</span>
+            </button>
+            <div class="account-connected" id="account-connected" hidden>
+              <button id="disconnect-account" type="button">Sign out</button>
+            </div>
+          </div>
+          <div class="auth-panel" id="auth-panel" hidden>
+            <ul class="plus-benefits-list" id="plus-benefits-list" hidden>
+              <li>Unlimited live dubbing</li>
+              <li>Translated or bilingual subtitles with styling</li>
+              <li>Save dubbed audio and subtitles</li>
+            </ul>
+            <div class="plus-plan-options" id="plus-plan-options" role="group" aria-label="Plus billing">
+              <button
+                class="plus-plan-option is-primary is-selected"
+                id="plus-plan-annual"
+                type="button"
+                data-plan="annual"
+                aria-pressed="true"
+              >
+                <strong id="plus-plan-annual-label">$50/year</strong>
+                <span id="plus-plan-annual-hint">2 months free</span>
+              </button>
+              <button
+                class="plus-plan-option"
+                id="plus-plan-monthly"
+                type="button"
+                data-plan="monthly"
+                aria-pressed="false"
+              >
+                <strong id="plus-plan-monthly-label">$5/month</strong>
+                <span id="plus-plan-monthly-hint">Cancel anytime</span>
+              </button>
+            </div>
+            <div class="checkout-intro" id="checkout-intro" hidden>
+              <span>Tap a plan — Google sign-in opens next.</span>
+            </div>
+            <p class="account-login" id="account-login" hidden>
+              Existing user?
+              <button type="button" id="account-login-btn">Log in</button>
+            </p>
+            <button id="google-signin" type="button">
+              <svg aria-hidden="true" viewBox="0 0 18 18">
+                <path fill="#4285f4" d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.797 2.715v2.259h2.909c1.702-1.567 2.684-3.875 2.684-6.614Z"></path>
+                <path fill="#34a853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.909-2.259c-.806.54-1.835.859-3.047.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.333A9 9 0 0 0 9 18Z"></path>
+                <path fill="#fbbc05" d="M3.963 10.705A5.41 5.41 0 0 1 3.682 9c0-.592.102-1.168.281-1.705V4.962H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.333Z"></path>
+                <path fill="#ea4335" d="M9 3.581c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.463.892 11.426 0 9 0A9 9 0 0 0 .956 4.962l3.007 2.333C4.672 5.166 6.656 3.581 9 3.581Z"></path>
+              </svg>
+              <span id="google-signin-label">Continue with Google</span>
+            </button>
+            <button id="plus-checkout" type="button" hidden>
+              Continue to checkout
+            </button>
+          </div>
+        </section>
+
+        <button class="activity-btn" id="activity" type="button">
+          <span class="label">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M2.5 2.5v11h11M4 10.5l2.5-3 2.3 1.8 3.7-4.3"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+              />
+            </svg>
+            <strong>Usage stats</strong>
+          </span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </button>
+      </section>
+
+      <footer>
+        <div class="setup">
+          <button class="setup-summary" id="key-toggle" type="button">
+            <span id="key-summary"><strong>Gemini API key</strong> · saved on device</span>
+            <span id="key-toggle-label">Add</span>
+          </button>
+          <div class="setup-panel" id="key-panel" hidden>
+            <div class="key-setup-intro">
+              <h1>Connect your Gemini API key</h1>
+              <p>One quick setup, then Livdub is ready on any tab with audio.</p>
+            </div>
+            <div class="key-guide">
+              <p><strong>1.</strong> Open Google AI Studio and create or copy your key.</p>
+              <button id="get-gemini-key" type="button">Get a free Gemini key ↗</button>
+              <p><strong>2.</strong> Return here, paste the key below, then save.</p>
+            </div>
+            <input
+              id="gemini-key"
+              type="password"
+              name="gemini-api-key"
+              autocomplete="new-password"
+              spellcheck="false"
+              autocapitalize="off"
+              autocorrect="off"
+              placeholder="Paste key"
+              aria-label="Gemini API key"
+            />
+            <div class="key-actions">
+              <button id="save-key" type="button">Save key and continue</button>
+              <button id="clear-key" type="button">Clear</button>
+            </div>
+            <p class="key-privacy-note">Your key is stored only in this browser and sent directly to Google. Livdub never receives it.</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>

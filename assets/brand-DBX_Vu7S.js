@@ -1,0 +1,1 @@
+const t=[16,32,48,128];function c(n){return t.find(e=>e>=n)??128}function r(n){const e=typeof window<"u"?Math.min(window.devicePixelRatio||1,3):2,i=Math.ceil(n*e),o=c(i);return chrome.runtime.getURL(`brand/chrome-extension/icon${o}.png`)}export{r as b};

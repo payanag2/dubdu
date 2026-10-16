@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage stats · livdub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Source+Sans+3:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        background: #101012;
+      }
+
+      @media (prefers-color-scheme: light) {
+        html {
+          background: #ebe8e1;
+        }
+      }
+
+      :root {
+        color-scheme: light dark;
+        --bg: #101012;
+        --panel: #18181b;
+        --panel-2: #121214;
+        --line: #2a2a30;
+        --line-strong: #3a3a42;
+        --text: #f3f1ec;
+        --muted: #9c9890;
+        --faint: #6e6b64;
+        --accent: #ff4d2e;
+        --live: #2a9d8f;
+        --heat-0: #222228;
+        --heat-1: #2a403c;
+        --heat-2: #2f6b5e;
+        --heat-3: #2a8f7c;
+        --heat-4: #2a9d8f;
+        --cell: 10px;
+        --cell-gap: 3px;
+        --radius: 12px;
+        --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino,
+          Georgia, serif;
+        --font-body: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif;
+        --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #ebe8e1;
+          --panel: #f7f5f1;
+          --panel-2: #efece5;
+          --line: #ddd8ce;
+          --line-strong: #cfc8ba;
+          --text: #171614;
+          --muted: #5f5b54;
+          --faint: #8a857c;
+          --accent: #e03f24;
+          --live: #0a9f82;
+          --heat-0: #e4e0d7;
+          --heat-1: #c5e6db;
+          --heat-2: #7fc9b3;
+          --heat-3: #2ea889;
+          --heat-4: #0a9f82;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 14.5px;
+        font-weight: 450;
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      input,
+      textarea,
+      .share-dialog p,
+      .selectable {
+        user-select: text;
+        -webkit-user-select: text;
+      }
+
+      .page {
+        opacity: 0;
+      }
+
+      .page.is-ready {
+        opacity: 1;
+        transition: opacity 0.14s ease;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page.is-ready {
+          transition: none;
+        }
+
+        .heat-cell,
+        .wave-bar,
+        .bar-fill {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      /* —— Page intro: single brand + title lockup —— */
+      .page-intro {
+        padding-bottom: 2px;
+      }
+
+      .page-lockup {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      .brand-mark {
+        flex: 0 0 auto;
+        display: block;
+        line-height: 0;
+        margin-top: 3px;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 50%;
+      }
+
+      .brand-mark:focus-visible {
+        outline: 2px solid var(--live);
+        outline-offset: 3px;
+      }
+
+      .brand-mark img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .page-intro-copy {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .brand-name {
+        margin: 0;
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: 0.98rem;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        color: var(--muted);
+      }
+
+      .page-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: 1.55rem;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+      }
+
+      .page-sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13.5px;
+        font-weight: 450;
+        line-height: 1.4;
+      }
+
+      @media (min-width: 640px) {
+        .page-sub {
+          white-space: nowrap;
+        }
+      }
+
+      .cal-head-end {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+
+      .share-btn {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--muted);
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 5px 9px;
+        border-radius: 7px;
+        cursor: pointer;
+        line-height: 1.2;
+      }
+
+      .share-btn:hover {
+        color: var(--text);
+        border-color: var(--line-strong);
+      }
+
+      .share-btn:focus-visible {
+        outline: 2px solid var(--live);
+        outline-offset: 2px;
+      }
+
+      .share-btn:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
+
+      .x-logo {
+        width: 11px;
+        height: 11px;
+        flex: 0 0 auto;
+        display: block;
+      }
+
+      .share-dialog-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .share-dialog-title .x-logo {
+        width: 16px;
+        height: 16px;
+      }
+
+      .share-actions button.primary .x-logo {
+        width: 13px;
+        height: 13px;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        z-index: 50;
+        transform: translateX(-50%) translateY(8px);
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 13px;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .share-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .share-modal[hidden] {
+        display: none;
+      }
+
+      .share-dialog {
+        width: min(520px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .share-dialog p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .share-preview {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        display: block;
+      }
+
+      .share-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .share-actions button {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--text);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 9px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .share-actions button.primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--text);
+        color: var(--bg);
+        border-color: transparent;
+      }
+
+      .share-actions button:hover {
+        border-color: var(--line-strong);
+      }
+
+      .share-actions button.primary:hover {
+        opacity: 0.92;
+      }
+
+      .shell {
+        width: min(880px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 28px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero,
+      .patterns,
+      .telemetry {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      /* —— Hero —— */
+      .hero {
+        overflow: visible;
+        display: grid;
+        grid-template-columns: minmax(148px, 0.72fr) minmax(0, 1.55fr);
+        gap: 0 4px;
+        align-items: start;
+      }
+
+      .hero-metric {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 18px 12px 16px 18px;
+      }
+
+      .eyebrow {
+        color: var(--faint);
+        font-family: var(--font-body);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        display: grid;
+        gap: 8px;
+      }
+
+      .metric-value strong {
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: clamp(42px, 6.5vw, 56px);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+        white-space: nowrap;
+      }
+
+      .metric-value span {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 450;
+        line-height: 1.35;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+      }
+
+      .chip {
+        color: var(--muted);
+        font-size: 12.5px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .chip em {
+        color: var(--text);
+        font-style: normal;
+        font-weight: 500;
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .hero-cal {
+        padding: 12px 16px 12px 8px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        align-items: stretch;
+        min-width: 0;
+      }
+
+      .cal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .range {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+      }
+
+      .range button {
+        appearance: none;
+        border: 0;
+        margin: 0;
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--faint);
+        font: inherit;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+        line-height: 1.2;
+      }
+
+      .range button:hover {
+        color: var(--muted);
+      }
+
+      .range button:focus-visible {
+        outline: 2px solid var(--live);
+        outline-offset: 1px;
+      }
+
+      .range button.is-active {
+        background: var(--panel);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+
+      .cal-frame {
+        display: grid;
+        grid-template-columns: 14px minmax(0, 1fr);
+        gap: 4px;
+        align-items: start;
+        min-width: 0;
+      }
+
+      .cal-frame > .cal-dows {
+        /* Align with heatmap rows under the month labels. */
+        padding-top: calc(13px + 6px);
+      }
+
+      .cal-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-width: 0;
+        padding-bottom: 0;
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-strong) transparent;
+      }
+
+      .cal-scroll::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .cal-scroll::-webkit-scrollbar-thumb {
+        background: var(--line-strong);
+        border-radius: 999px;
+      }
+
+      .hero-cal[data-density="year"] {
+        --cell: 8px;
+        --cell-gap: 2px;
+      }
+
+      .cal-legend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--faint);
+        font-size: 10.5px;
+      }
+
+      .cal-legend i {
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--heat-0);
+      }
+
+      .cal-legend i[data-level="1"] {
+        background: var(--heat-1);
+      }
+      .cal-legend i[data-level="2"] {
+        background: var(--heat-2);
+      }
+      .cal-legend i[data-level="3"] {
+        background: var(--heat-3);
+      }
+      .cal-legend i[data-level="4"] {
+        background: var(--heat-4);
+      }
+
+      .cal-months {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: calc(var(--cell) + var(--cell-gap));
+        height: 13px;
+        color: var(--faint);
+        font-size: 10px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+      }
+
+      .cal-months span {
+        white-space: nowrap;
+      }
+
+      .cal-dows {
+        display: grid;
+        grid-template-rows: repeat(7, var(--cell));
+        gap: var(--cell-gap);
+        color: var(--faint);
+        font-size: 9px;
+        font-family: var(--font-mono);
+        line-height: var(--cell);
+        text-align: right;
+        padding: 6px 2px 6px 0;
+        user-select: none;
+      }
+
+      .heatmap {
+        position: relative;
+        display: grid;
+        grid-template-rows: repeat(7, var(--cell));
+        grid-auto-flow: column;
+        grid-auto-columns: var(--cell);
+        gap: var(--cell-gap);
+        width: max-content;
+        padding: 6px 6px 6px 0;
+      }
+
+      .heat-cell {
+        appearance: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        display: block;
+        width: var(--cell);
+        height: var(--cell);
+        border-radius: 2px;
+        background: var(--heat-0);
+        opacity: var(--cell-opacity, 1);
+        transform: scale(1);
+        cursor: pointer;
+        transition:
+          transform 0.12s ease,
+          box-shadow 0.15s ease;
+        /* backwards only — forwards was locking transform and killing hover */
+        animation: cell-in 0.4s ease backwards;
+      }
+
+      .heat-cell:disabled {
+        cursor: default;
+        pointer-events: none;
+      }
+
+      @keyframes cell-in {
+        from {
+          opacity: 0;
+          transform: scale(0.55);
+        }
+      }
+
+      .heat-cell[data-level="1"] {
+        background: var(--heat-1);
+      }
+      .heat-cell[data-level="2"] {
+        background: var(--heat-2);
+      }
+      .heat-cell[data-level="3"] {
+        background: var(--heat-3);
+      }
+      .heat-cell[data-level="4"] {
+        background: var(--heat-4);
+      }
+
+      .heat-cell.is-today {
+        outline: 1px solid color-mix(in srgb, var(--text) 45%, transparent);
+        outline-offset: 1px;
+      }
+
+      .heat-cell.is-live {
+        outline: 1px solid var(--live);
+        outline-offset: 1px;
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--live) 28%, transparent);
+      }
+
+      .heat-cell:hover,
+      .heat-cell:focus-visible {
+        transform: scale(1.45);
+        z-index: 3;
+        outline: 1px solid color-mix(in srgb, var(--text) 40%, transparent);
+        outline-offset: 1px;
+      }
+
+      .heat-tip {
+        position: fixed;
+        z-index: 40;
+        padding: 6px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 12px;
+        line-height: 1.3;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 0.12s ease,
+          transform 0.12s ease;
+      }
+
+      .heat-tip.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .cal-empty {
+        margin: 2px 0 0;
+        color: var(--faint);
+        font-size: 12.5px;
+        line-height: 1.45;
+        max-width: 36ch;
+      }
+
+      .cal-frame[hidden] ~ .cal-empty {
+        margin-top: 4px;
+        padding: 8px 0 4px;
+      }
+
+      .cal-frame[hidden],
+      .cal-empty[hidden] {
+        display: none;
+      }
+
+      /* —— Patterns (hours · languages · domains) —— */
+      .patterns {
+        padding: 16px 18px 18px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .patterns-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .patterns-head h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .patterns-head em {
+        color: var(--faint);
+        font-style: normal;
+        font-size: 11.5px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+      }
+
+      .patterns-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) minmax(0, 0.9fr);
+        gap: 8px 28px;
+        align-items: start;
+      }
+
+      .pattern-block {
+        min-width: 0;
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+
+      .pattern-block-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .pattern-block-head h3 {
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .pattern-block-head em {
+        color: var(--faint);
+        font-style: normal;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .wave {
+        display: grid;
+        grid-template-columns: repeat(24, minmax(0, 1fr));
+        gap: 3px;
+        align-items: end;
+        height: 88px;
+        padding: 2px 0 0;
+      }
+
+      .wave-bar {
+        min-height: 3px;
+        border-radius: 2px 2px 0 0;
+        background: var(--live);
+        transform-origin: bottom center;
+        animation: wave-in 0.45s ease both;
+        opacity: 0.92;
+      }
+
+      .wave-bar.is-peak {
+        opacity: 1;
+      }
+
+      .wave-bar.is-empty {
+        background: var(--heat-0);
+        opacity: 1;
+      }
+
+      @keyframes wave-in {
+        from {
+          transform: scaleY(0.15);
+          opacity: 0.35;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+
+      .wave-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        color: var(--faint);
+        font-size: 10px;
+        font-family: var(--font-mono);
+      }
+
+      .wave-caption {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.4;
+      }
+
+      .wave-caption strong {
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .bars {
+        display: grid;
+        gap: 10px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 36px;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .bar-main {
+        display: grid;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .bar-main span {
+        color: var(--muted);
+        font-size: 12.5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .bar-row em {
+        color: var(--faint);
+        font-style: normal;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .bar-track {
+        height: 3px;
+        border-radius: 999px;
+        background: var(--panel-2);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--live);
+        transform-origin: left center;
+        animation: bar-in 0.45s ease both;
+      }
+
+      @keyframes bar-in {
+        from {
+          transform: scaleX(0.12);
+          opacity: 0.35;
+        }
+        to {
+          transform: scaleX(1);
+          opacity: 1;
+        }
+      }
+
+      .empty {
+        margin: 0;
+        color: var(--faint);
+        font-size: 12.5px;
+        line-height: 1.4;
+      }
+
+      /* —— Telemetry —— */
+      .telemetry {
+        padding: 18px 18px 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .telemetry-head {
+        display: grid;
+        gap: 6px;
+      }
+
+      .telemetry-head h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-optical-sizing: auto;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .telemetry-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 450;
+        line-height: 1.35;
+      }
+
+      .segment {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel-2);
+        overflow: hidden;
+      }
+
+      .segment button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        text-align: left;
+        font: inherit;
+        padding: 12px 14px;
+        display: grid;
+        align-content: start;
+        gap: 4px;
+        min-height: 100%;
+        box-shadow: none;
+      }
+
+      .segment button + button {
+        border-left: 1px solid var(--line);
+      }
+
+      .segment button:hover {
+        color: var(--text);
+        background: color-mix(in srgb, var(--panel) 55%, transparent);
+      }
+
+      .segment button:focus-visible {
+        outline: 2px solid var(--live);
+        outline-offset: -2px;
+        z-index: 1;
+      }
+
+      .segment button strong {
+        font-size: 13px;
+        font-weight: 600;
+        color: inherit;
+      }
+
+      .segment button span {
+        font-size: 11.5px;
+        line-height: 1.35;
+        color: var(--faint);
+      }
+
+      .segment button.is-active {
+        color: var(--text);
+        background: color-mix(in srgb, var(--live) 12%, var(--panel));
+      }
+
+      .segment button.is-active span {
+        color: var(--muted);
+      }
+
+      .never-shared {
+        margin: 0;
+        color: var(--faint);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .never-shared strong {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .page-footer {
+        display: grid;
+        gap: 10px;
+        padding: 4px 0 8px;
+        text-align: left;
+      }
+
+      .page-footer .legal-note {
+        margin: 0;
+        color: var(--faint);
+        font-size: 11px;
+        line-height: 1.45;
+        user-select: text;
+      }
+
+      .page-footer-links {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .page-footer-links a {
+        color: var(--faint);
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .page-footer-links a:hover {
+        color: var(--muted);
+        text-decoration: underline;
+      }
+
+      .page-footer-links a:focus-visible {
+        outline: 2px solid var(--live);
+        outline-offset: 2px;
+        border-radius: 2px;
+      }
+
+      .page-footer-links span {
+        color: color-mix(in srgb, var(--faint) 50%, transparent);
+        font-size: 10px;
+        user-select: none;
+      }
+
+      @media (min-width: 840px) {
+        .telemetry-head p,
+        .segment button span,
+        .never-shared {
+          white-space: nowrap;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .patterns-body {
+          grid-template-columns: 1fr 1fr;
+          gap: 18px 24px;
+        }
+
+        .pattern-block:first-child {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 780px) {
+        .shell {
+          padding-top: 22px;
+          gap: 16px;
+        }
+
+        .cal-head-end {
+          margin-left: 0;
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-metric {
+          border: 0;
+          padding: 16px 16px 4px;
+        }
+
+        .hero-cal {
+          padding: 8px 16px 14px;
+        }
+
+        .patterns-body {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        .pattern-block:first-child {
+          grid-column: auto;
+        }
+
+        .segment {
+          grid-template-columns: 1fr;
+        }
+
+        .segment button + button {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/stats-DI6Jz7w6.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="modulepreload" crossorigin href="/assets/languages-CWpi6jxF.js">
+    <link rel="modulepreload" crossorigin href="/assets/brand-DBX_Vu7S.js">
+    <link rel="modulepreload" crossorigin href="/assets/sessions-Bq2-99JM.js">
+  </head>
+  <body>
+    <div class="page">
+      <div class="toast" id="share-toast" role="status" aria-live="polite"></div>
+
+      <div
+        class="share-modal"
+        id="share-modal"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-modal-title"
+      >
+        <div class="share-dialog">
+          <h2 class="share-dialog-title" id="share-modal-title">
+            <svg class="x-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+              />
+            </svg>
+            Share
+          </h2>
+          <p>
+            X can’t attach images from a link. We’ll copy the card — paste with
+            ⌘V / Ctrl+V in the composer.
+          </p>
+          <img class="share-preview" id="share-preview" alt="Activity share card preview" />
+          <div class="share-actions">
+            <button id="share-cancel" type="button">Cancel</button>
+            <button class="primary" id="share-open-x" type="button">
+              <svg class="x-logo" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                />
+              </svg>
+              Copy &amp; open
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <main class="shell">
+        <header class="page-intro">
+          <div class="page-lockup">
+            <a class="brand-mark" href="#" id="brand-home" title="livdub">
+              <img id="brand-icon" alt="" width="40" height="40" />
+            </a>
+            <div class="page-intro-copy">
+              <p class="brand-name">livdub</p>
+              <h1 class="page-title">Usage stats</h1>
+              <p class="page-sub">
+                Dubbing time on this install — local only, not an account.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <section class="hero" aria-label="Usage overview">
+          <div class="hero-metric">
+            <div class="eyebrow">Time dubbed</div>
+            <div class="metric-value">
+              <strong id="stat-minutes">0m</strong>
+              <span id="stat-range-phrase">across the last 12 months</span>
+            </div>
+            <div class="chip-row">
+              <span class="chip" id="stat-sessions-chip"><em>0</em> sessions</span>
+              <span class="chip" id="stat-days-chip"><em>0</em> active days</span>
+              <span class="chip" id="stat-languages-chip"><em>0</em> languages</span>
+            </div>
+          </div>
+
+          <div class="hero-cal">
+            <div class="cal-head">
+              <div class="range" role="radiogroup" aria-label="Date range" id="stats-range">
+                <button type="button" role="radio" data-range="7" aria-checked="false">7d</button>
+                <button type="button" role="radio" data-range="30" aria-checked="false">30d</button>
+                <button type="button" role="radio" data-range="90" aria-checked="false">90d</button>
+                <button type="button" role="radio" data-range="all" aria-checked="true" class="is-active">All</button>
+              </div>
+              <div class="cal-head-end">
+                <div class="cal-legend" aria-hidden="true">
+                  Less
+                  <i data-level="0"></i>
+                  <i data-level="1"></i>
+                  <i data-level="2"></i>
+                  <i data-level="3"></i>
+                  <i data-level="4"></i>
+                  More
+                </div>
+                <button class="share-btn" id="share-x" type="button">
+                  <svg class="x-logo" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                    />
+                  </svg>
+                  Share
+                </button>
+              </div>
+            </div>
+            <div class="cal-frame" id="cal-frame">
+              <div class="cal-dows" aria-hidden="true">
+                <span></span>
+                <span>M</span>
+                <span></span>
+                <span>W</span>
+                <span></span>
+                <span>F</span>
+                <span></span>
+              </div>
+              <div class="cal-scroll" id="cal-scroll">
+                <div class="cal-months" id="cal-months" aria-hidden="true"></div>
+                <div
+                  class="heatmap"
+                  id="heatmap"
+                  role="img"
+                  aria-label="Daily dubbing activity by UTC calendar day"
+                ></div>
+              </div>
+            </div>
+            <p class="cal-empty" id="heatmap-empty" hidden>
+              No sessions yet — start dubbing and this fills in.
+            </p>
+          </div>
+        </section>
+        <div class="heat-tip" id="heat-tip" role="tooltip" hidden></div>
+
+        <section class="patterns" aria-label="Usage patterns">
+          <div class="patterns-head">
+            <h2>Patterns</h2>
+            <em id="patterns-range">12 months</em>
+          </div>
+          <div class="patterns-body">
+            <div class="pattern-block">
+              <div class="pattern-block-head">
+                <h3>Listening hours</h3>
+                <em id="hour-peak">—</em>
+              </div>
+              <div class="wave" id="hour-wave" role="img" aria-label="Hours of day activity in local time"></div>
+              <div class="wave-labels" aria-hidden="true">
+                <span>00</span>
+                <span>06</span>
+                <span>12</span>
+                <span>18</span>
+                <span>23</span>
+              </div>
+              <p class="wave-caption" id="hour-caption">Local time · quiet so far</p>
+            </div>
+
+            <div class="pattern-block">
+              <div class="pattern-block-head">
+                <h3>Languages</h3>
+              </div>
+              <div class="bars" id="lang-bars"></div>
+            </div>
+
+            <div class="pattern-block">
+              <div class="pattern-block-head">
+                <h3>Domains</h3>
+              </div>
+              <div class="bars" id="domain-bars"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="telemetry" aria-label="Telemetry">
+          <div class="telemetry-head">
+            <h2>Telemetry</h2>
+            <p>
+              Anonymous session summaries power public stats. Choose Less or More
+              detail.
+            </p>
+          </div>
+
+          <div class="segment" role="radiogroup" aria-label="Sharing level">
+            <button
+              id="level-rollup"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-level="rollup"
+            >
+              <strong>Less detail</strong>
+              <span>Language, length, and timestamp.</span>
+            </button>
+            <button
+              id="level-session"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-level="session"
+            >
+              <strong>More detail</strong>
+              <span>Same, plus site domain (e.g. youtube.com).</span>
+            </button>
+          </div>
+
+          <p class="never-shared" id="never-shared"></p>
+        </section>
+
+        <footer class="page-footer">
+          <p class="legal-note">
+            Capture and playback run in the extension. Translation uses Google
+            Gemini with your API key; livdub does not host translation for you.
+            livdub is not affiliated with, endorsed by, or sponsored by Google.
+            Google and Gemini are trademarks of Google LLC.
+          </p>
+          <div class="page-footer-links">
+            <a id="site-link" href="#" target="_blank" rel="noreferrer">livdub</a>
+            <span aria-hidden="true">·</span>
+            <a id="terms-link" href="#" target="_blank" rel="noreferrer">Terms of Use</a>
+            <span aria-hidden="true">·</span>
+            <a id="privacy-link" href="#" target="_blank" rel="noreferrer">Privacy Policy</a>
+          </div>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

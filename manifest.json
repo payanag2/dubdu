@@ -1,0 +1,44 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "brand/chrome-extension/toolbar-icon128.png",
+         "16": "brand/chrome-extension/toolbar-icon16.png",
+         "32": "brand/chrome-extension/toolbar-icon32.png",
+         "48": "brand/chrome-extension/toolbar-icon48.png"
+      },
+      "default_popup": "src/popup/popup.html"
+   },
+   "background": {
+      "service_worker": "service-worker-loader.js",
+      "type": "module"
+   },
+   "content_security_policy": {
+      "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;"
+   },
+   "description": "Live dubbing for the audio playing in your current tab",
+   "host_permissions": [ "https://generativelanguage.googleapis.com/*", "https://livdub.com/*", "https://*.livdub.com/*" ],
+   "icons": {
+      "128": "brand/chrome-extension/icon128.png",
+      "16": "brand/chrome-extension/icon16.png",
+      "32": "brand/chrome-extension/icon32.png",
+      "48": "brand/chrome-extension/icon48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9NElv/nMrYBPDx6+rdetJJZCe6tBV9vcdbGqJum0rwELSeGgFR41rXd+6DGAKaQUbTVKLBDWbrUZjOwE9Gdq3tin8kZSpJeQagxC51jGe+NsTuFG2X7xYKmbQ0GdJwXQosQ3yWz0a51TdI8FJDgwGntOrWRgaIQ/E0UoF5KWe+gxEsDct2CPEsp3hq+onumVFmbaebC6OzCvdkSLsVRYIWNeE7fRvfZky9P5UROXeE1nh/WOSncp/Q480zs11QPmJvPpZ4XQ2ZYXHFF/m2cF3eSBQ+nbo5i9NbQsblKKmBX5JBQ8wfTxJQv/OOQgWbfmaOFXh6xD2rYkgU5cRN6IQIDAQAB",
+   "manifest_version": 3,
+   "minimum_chrome_version": "116",
+   "name": "livdub",
+   "oauth2": {
+      "client_id": "124989101353-tofta62p89m5ttf05isttjv2en840nv7.apps.googleusercontent.com",
+      "scopes": [ "https://www.googleapis.com/auth/userinfo.email" ]
+   },
+   "optional_host_permissions": [ "http://*/*", "https://*/*" ],
+   "optional_permissions": [ "downloads" ],
+   "permissions": [ "storage", "activeTab", "offscreen", "scripting", "tabCapture", "clipboardWrite", "windows", "alarms", "identity" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.0.4",
+   "web_accessible_resources": [ {
+      "matches": [ "https://*.livdub.com/*", "https://livdub.com/*" ],
+      "resources": [ "stats/*", "stats/index.html" ],
+      "use_dynamic_url": false
+   } ]
+}
